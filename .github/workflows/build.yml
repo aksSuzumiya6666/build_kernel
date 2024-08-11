@@ -83,10 +83,10 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: linux-headers.deb
-        path: linux-kernel/linux-headers-*.deb
+        path: linux-kernel/kernel-src/linux-headers-*.deb
 
     - name: Upload the linux-image-*.deb
       uses: actions/upload-artifact@v3
       with:
         name: linux-image.deb
-        path: linux-kernel/linux-image-*.deb
+        path: linux-kernel/kernel-src/linux-image-*.deb
