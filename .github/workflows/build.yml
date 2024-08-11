@@ -38,7 +38,7 @@ jobs:
     - name: Download and extract Clang
       run: |
         mkdir clang
-        wget -q ${{ env.CLANG_URL }} -O clang.tar.gz
+        wget -q ${{ github.event.inputs.CLANG_URL }} -O clang.tar.gz
         tar -C clang/ -zxf clang.tar.gz
         export PATH=$GITHUB_WORKSPACE/clang/bin:$PATH
 
