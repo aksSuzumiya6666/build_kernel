@@ -7,6 +7,10 @@ on:
         description: 'GitHub repository URL to clone the kernel source from'
         required: true
         default: 'https://github.com/barni2000/linux.git'
+      CLANG_URL:
+        description: 'Clang URL'
+        required: true
+        default: 'https://github.com/ZyCromerZ/Clang/releases/download/20.0.0git-20240811-release/Clang-20.0.0git-20240811.tar.gz'  
       branch:
         description: 'Branch of the repository to use'
         required: true
@@ -15,6 +19,10 @@ on:
         description: 'Defconfig file to use for the build'
         required: true
         default: 'msm8937_pmos_defconfig'
+      dtb:
+        description: 'dtb'
+        required: true
+        default: 'msm8917-xiaomi-rolex.dtb'
 
 jobs:
   build:
@@ -29,24 +37,50 @@ jobs:
 
     - name: Download and extract Clang
       run: |
-        wget https://github.com/XSans0/WeebX-Clang/releases/download/WeebX-Clang-20.0.0git-release/WeebX-Clang-20.0.0git.tar.gz
-        tar -xvf WeebX-Clang-20.0.0git.tar.gz
-        export PATH=$PWD/WeebX-Clang/bin:$PATH
+        mkdir clang
+        wget -q ${{ env.CLANG_URL }} -O clang.tar.gz
+        tar -C clang/ -zxf clang.tar.gz
+        export PATH=$GITHUB_WORKSPACE/clang/bin:$PATH
 
     - name: Clone the kernel source
       run: |
+        mkdir linux-kernel
+        cd linux-kernel
         git clone --branch ${{ github.event.inputs.branch }} ${{ github.event.inputs.repository }} kernel-src
         cd kernel-src
 
     - name: Build the kernel
       run: |
-        cd kernel-src
+        cd linux-kernel/kernel-src
+        export PATH=$GITHUB_WORKSPACE/clang/bin:$PATH
         make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang ${{ github.event.inputs.defconfig }}
         make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang -j$(nproc)
+    
+    - name: Build the kernel 
+      run: |
+        cd linux-kernel/kernel-src
+        fakeroot make-kpkg  --initrd --cross-compile aarch64-linux-gnu- --arch arm64 kernel_image kernel_headers
 
     - name: Upload the kernel image
       uses: actions/upload-artifact@v3
       with:
-        name: KernelImage
-        path: kernel-src/arch/arm64/boot/Image.gz
-        
+        name: Image.gz
+        path: linux-kernel/kernel-src/arch/arm64/boot/Image.gz
+
+    - name: Upload the dtb
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ github.event.inputs.branch }}
+        path: linux-kernel/kernel-src/arch/arm64/boot/${{ github.event.inputs.branch }}
+
+    - name: Upload the linux-headers-*.deb
+      uses: actions/upload-artifact@v3
+      with:
+        name: linux-headers.deb
+        path: linux-kernel/linux-headers-*.deb
+
+    - name: Upload the linux-image-*.deb
+      uses: actions/upload-artifact@v3
+      with:
+        name: linux-image.deb
+        path: linux-kernel/linux-image-*.deb
