@@ -1,0 +1,51 @@
+name: Build ARM64 Kernel
+
+on:
+  workflow_dispatch:
+    inputs:
+      repository:
+        description: 'GitHub repository URL to clone the kernel source from'
+        required: true
+        default: 'https://github.com/barni2000/linux.git'
+      branch:
+        description: 'Branch of the repository to use'
+        required: true
+        default: 'msm89x7-6.9-rc6-playground'
+      defconfig:
+        description: 'Defconfig file to use for the build'
+        required: true
+        default: 'msm8937_pmos_defconfig'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Set up environment
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y gcc-aarch64-linux-gnu bc bison flex libssl-dev make
+        sudo apt install binfmt-support qemu-user-static gcc-10-aarch64-linux-gnu kernel-package fakeroot simg2img img2simg mkbootimg bison flex gcc-aarch64-linux-gnu pkg-config libncurses-dev libssl-dev unzip git
+
+    - name: Download and extract Clang
+      run: |
+        wget https://github.com/XSans0/WeebX-Clang/releases/download/WeebX-Clang-20.0.0git-release/WeebX-Clang-20.0.0git.tar.gz
+        tar -xvf WeebX-Clang-20.0.0git.tar.gz
+        export PATH=$PWD/WeebX-Clang/bin:$PATH
+
+    - name: Clone the kernel source
+      run: |
+        git clone --branch ${{ github.event.inputs.branch }} ${{ github.event.inputs.repository }} kernel-src
+        cd kernel-src
+
+    - name: Build the kernel
+      run: |
+        cd kernel-src
+        make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang ${{ github.event.inputs.defconfig }}
+        make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang -j$(nproc)
+
+    - name: Upload the kernel image
+      uses: actions/upload-artifact@v3
+      with:
+        name: KernelImage
+        path: kernel-src/arch/arm64/boot/Image
