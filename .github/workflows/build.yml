@@ -59,13 +59,15 @@ jobs:
       run: |
         cd linux-kernel/kernel-src
         export PATH=$GITHUB_WORKSPACE/clang/bin:$PATH
-        make LLVM=1 NM=llvm-nm OBJDUMP=llvm-objdump STRIP=llvm-strip ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang ${{ github.event.inputs.defconfig }}
-        make LLVM=1 NM=llvm-nm OBJDUMP=llvm-objdump STRIP=llvm-strip ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang -j$(nproc)
-    
-    - name: Build the kernel deb
-      run: |
+        make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang ${{ github.event.inputs.defconfig }}
+        make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang -j$(nproc)
         sudo apt-get install -y debhelper-compat libelf-dev
-        make LLVM=1 NM=llvm-nm OBJDUMP=llvm-objdump STRIP=llvm-strip ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang deb-pkg -j$(nproc)
+        make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang deb-pkg -j$(nproc)
+    
+    # - name: Build the kernel deb
+    #   run: |
+    #     sudo apt-get install -y debhelper-compat libelf-dev
+    #     make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang deb-pkg -j$(nproc)
 
     - name: Upload the kernel image
       uses: actions/upload-artifact@v3
