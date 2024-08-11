@@ -10,7 +10,7 @@ on:
       CLANG_URL:
         description: 'Clang URL'
         required: true
-        default: 'https://github.com/ZyCromerZ/Clang/releases/download/20.0.0git-20240811-release/Clang-20.0.0git-20240811.tar.gz'  
+        default: 'https://github.com/XSans0/WeebX-Clang/releases/download/WeebX-Clang-19.1.0-rc2-release/WeebX-Clang-19.1.0-rc2.tar.gz'  
       branch:
         description: 'Branch of the repository to use'
         required: true
