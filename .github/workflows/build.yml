@@ -41,6 +41,7 @@ jobs:
         wget -q ${{ github.event.inputs.CLANG_URL }} -O clang.tar.gz
         tar -C clang/ -zxf clang.tar.gz
         export PATH=$GITHUB_WORKSPACE/clang/bin:$PATH
+        ldd --version
 
     - name: Clone the kernel source
       run: |
