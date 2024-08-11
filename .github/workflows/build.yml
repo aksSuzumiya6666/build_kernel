@@ -26,13 +26,13 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     steps:
     - name: Set up environment
       run: |
         sudo apt-get update
-        sudo apt-get install -y gcc-aarch64-linux-gnu bc bison flex libssl-dev make kernel-package
+        sudo apt-get install -y gcc-aarch64-linux-gnu bc bison flex libssl-dev make
         sudo apt install binfmt-support qemu-user-static gcc-10-aarch64-linux-gnu fakeroot simg2img img2simg mkbootimg bison flex gcc-aarch64-linux-gnu pkg-config libncurses-dev libssl-dev unzip git
 
     - name: Download and extract Clang
@@ -45,6 +45,7 @@ jobs:
 
     - name: Check clang version
       run: |
+        export PATH=$GITHUB_WORKSPACE/clang/bin:$PATH
         clang --version
 
     - name: Clone the kernel source
