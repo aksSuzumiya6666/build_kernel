@@ -61,6 +61,7 @@ jobs:
         export PATH=$GITHUB_WORKSPACE/clang/bin:$PATH
         make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang ${{ github.event.inputs.defconfig }}
         make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang -j$(nproc)
+        sudo apt-get install -y debhelper-compat libelf-dev
         make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang deb-pkg -j$(nproc)
     
     # - name: Build the kernel deb
