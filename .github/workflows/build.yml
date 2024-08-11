@@ -47,6 +47,7 @@ jobs:
       run: |
         export PATH=$GITHUB_WORKSPACE/clang/bin:$PATH
         clang --version
+        ldd --version
 
     - name: Clone the kernel source
       run: |
@@ -84,11 +85,17 @@ jobs:
     - name: Upload the linux-headers-*.deb
       uses: actions/upload-artifact@v3
       with:
-        name: linux-headers.deb
+        name: rolex-linux-headers-${{ env.BUILD_DATE }}.deb
         path: linux-kernel/linux-headers-*.deb
 
     - name: Upload the linux-image-*.deb
       uses: actions/upload-artifact@v3
       with:
-        name: linux-image.deb
+        name: rolex-linux-image-${{ env.BUILD_DATE }}.deb
         path: linux-kernel/linux-image-*.deb
+
+    - name: Upload the linux-libc-*.deb
+      uses: actions/upload-artifact@v3
+      with:
+        name: rolex-linux-libc-${{ env.BUILD_DATE }}.deb
+        path: linux-kernel/linux-libc-*.deb
