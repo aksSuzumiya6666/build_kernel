@@ -48,4 +48,5 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: KernelImage
-        path: kernel-src/arch/arm64/boot/Image
+        path: kernel-src/arch/arm64/boot/Image.gz
+        
