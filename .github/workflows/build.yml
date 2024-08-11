@@ -10,7 +10,7 @@ on:
       CLANG_URL:
         description: 'Clang URL'
         required: true
-        default: 'https://github.com/XSans0/WeebX-Clang/releases/download/WeebX-Clang-19.1.0-rc2-release/WeebX-Clang-19.1.0-rc2.tar.gz'  
+        default: 'https://github.com/ZyCromerZ/Clang/releases/download/20.0.0git-20240811-release/Clang-20.0.0git-20240811.tar.gz'  
       branch:
         description: 'Branch of the repository to use'
         required: true
@@ -59,15 +59,13 @@ jobs:
       run: |
         cd linux-kernel/kernel-src
         export PATH=$GITHUB_WORKSPACE/clang/bin:$PATH
-        make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang ${{ github.event.inputs.defconfig }}
-        make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang -j$(nproc)
-        sudo apt-get install -y debhelper-compat libelf-dev
-        make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang deb-pkg -j$(nproc)
+        make LLVM=1 NM=llvm-nm OBJDUMP=llvm-objdump STRIP=llvm-strip ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang ${{ github.event.inputs.defconfig }}
+        make LLVM=1 NM=llvm-nm OBJDUMP=llvm-objdump STRIP=llvm-strip ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang -j$(nproc)
     
-    # - name: Build the kernel deb
-    #   run: |
-    #     cd linux-kernel/kernel-src
-    #     fakeroot make-kpkg  --initrd --cross-compile aarch64-linux-gnu- --arch arm64 kernel_image kernel_headers
+    - name: Build the kernel deb
+      run: |
+        sudo apt-get install -y debhelper-compat libelf-dev
+        make LLVM=1 NM=llvm-nm OBJDUMP=llvm-objdump STRIP=llvm-strip ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang deb-pkg -j$(nproc)
 
     - name: Upload the kernel image
       uses: actions/upload-artifact@v3
@@ -79,16 +77,16 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: ${{ github.event.inputs.dtb }}
-        path: linux-kernel/kernel-src/arch/arm64/boot/${{ github.event.inputs.dtb }}
+        path: linux-kernel/kernel-src/arch/arm64/boot/dts/qcom/${{ github.event.inputs.dtb }}
 
     - name: Upload the linux-headers-*.deb
       uses: actions/upload-artifact@v3
       with:
         name: linux-headers.deb
-        path: linux-kernel/kernel-src/linux-headers-*.deb
+        path: linux-kernel/linux-headers-*.deb
 
     - name: Upload the linux-image-*.deb
       uses: actions/upload-artifact@v3
       with:
         name: linux-image.deb
-        path: linux-kernel/kernel-src/linux-image-*.deb
+        path: linux-kernel/linux-image-*.deb
