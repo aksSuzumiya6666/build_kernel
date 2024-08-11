@@ -70,8 +70,8 @@ jobs:
     - name: Upload the dtb
       uses: actions/upload-artifact@v3
       with:
-        name: ${{ github.event.inputs.branch }}
-        path: linux-kernel/kernel-src/arch/arm64/boot/${{ github.event.inputs.branch }}
+        name: ${{ github.event.inputs.dtb }}
+        path: linux-kernel/kernel-src/arch/arm64/boot/${{ github.event.inputs.dtb }}
 
     - name: Upload the linux-headers-*.deb
       uses: actions/upload-artifact@v3
