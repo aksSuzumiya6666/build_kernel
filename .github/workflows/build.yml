@@ -48,8 +48,6 @@ jobs:
         export PATH=$GITHUB_WORKSPACE/clang/bin:$PATH
         clang --version
         ldd --version
-        CLANG_VERSION=$(clang -v 2>&1 | grep "clang version" | awk '{print $3}')
-        echo "CLANG_VERSION=$CLANG_VERSION" >> $GITHUB_ENV
 
     - name: Clone the kernel source
       run: |
@@ -72,7 +70,7 @@ jobs:
     - name: Upload kernel artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: kernel-artifacts-${{ env.CLANG_VERSION }}-${{ env.BUILD_TIME }}
+        name: kernel-artifacts-${{ env.BUILD_TIME }}
         path: |
           linux-kernel/kernel-src/arch/arm64/boot/Image.gz
           linux-kernel/kernel-src/arch/arm64/boot/dts/qcom/${{ github.event.inputs.dtb }}
