@@ -19,10 +19,10 @@ on:
         description: 'Defconfig file to use for the build'
         required: true
         default: 'msm8937_pmos_defconfig'
-      dtb:
-        description: 'dtb'
-        required: true
-        default: 'msm8917-xiaomi-rolex.dtb'
+      # dtb:
+      #   description: 'dtb'
+      #   required: true
+      #   default: 'msm8917-xiaomi-rolex.dtb'
 
 jobs:
   build:
@@ -66,6 +66,7 @@ jobs:
         make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang -j$(nproc)
         sudo apt-get install -y debhelper-compat libelf-dev
         make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang deb-pkg -j$(nproc)
+        tar -czf qcom_dtb.tar.gz arch/arm64/boot/dts/qcom/*.dtb
 
     - name: Upload kernel artifacts
       uses: actions/upload-artifact@v4
@@ -73,7 +74,8 @@ jobs:
         name: kernel-artifacts-${{ env.BUILD_TIME }}
         path: |
           linux-kernel/kernel-src/arch/arm64/boot/Image.gz
-          linux-kernel/kernel-src/arch/arm64/boot/dts/qcom/${{ github.event.inputs.dtb }}
+          linux-kernel/kernel-src/qcom_dtb.tar.gz
+          # linux-kernel/kernel-src/arch/arm64/boot/dts/qcom/${{ github.event.inputs.dtb }}
           linux-kernel/linux-headers-*.deb
           linux-kernel/linux-image-*.deb
           linux-kernel/linux-libc-*.deb
