@@ -54,11 +54,13 @@ jobs:
         mkdir linux-kernel
         cd linux-kernel
         git clone --branch ${{ github.event.inputs.branch }} ${{ github.event.inputs.repository }} kernel-src
-        cd kernel-src
+        cd ../
+        pwd
 
     - name: Build the kernel
       run: |
         cd linux-kernel/kernel-src
+        pwd
         export PATH=$GITHUB_WORKSPACE/clang/bin:$PATH
         export LLVM=1
         export BUILD_INITRAMFS=1
