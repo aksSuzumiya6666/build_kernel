@@ -6,11 +6,11 @@ on:
       repository:
         description: 'GitHub repository URL to clone the kernel source from'
         required: true
-        default: 'https://github.com/barni2000/linux.git'
+        default: 'https://github.com/xingqianzhi/msm89x7-mainline.git'
       CLANG_URL:
         description: 'Clang URL'
         required: true
-        default: 'https://github.com/ZyCromerZ/Clang/releases/download/20.0.0git-20240823-release/Clang-20.0.0git-20240823.tar.gz'  
+        default: 'https://github.com/ZyCromerZ/Clang/releases/download/20.0.0git-20241020-release/Clang-20.0.0git-20241020.tar.gz'  
       branch:
         description: 'Branch of the repository to use'
         required: true
@@ -18,7 +18,7 @@ on:
       defconfig:
         description: 'Defconfig file to use for the build'
         required: true
-        default: 'msm8937_pmos_defconfig'
+        default: 'msm89x7defconfig'
       # dtb:
       #   description: 'dtb'
       #   required: true
