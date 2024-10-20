@@ -1,0 +1,118 @@
+name: Build ARM64 Kernel
+
+on:
+  workflow_dispatch:
+    inputs:
+      repository:
+        description: 'GitHub repository URL to clone the kernel source from'
+        required: true
+        default: 'https://github.com/barni2000/linux.git'
+      CLANG_URL:
+        description: 'Clang URL'
+        required: true
+        default: 'https://github.com/ZyCromerZ/Clang/releases/download/20.0.0git-20240823-release/Clang-20.0.0git-20240823.tar.gz'  
+      branch:
+        description: 'Branch of the repository to use'
+        required: true
+        default: 'msm89x7-6.9-rc6-playground'
+      # defconfig:
+      #   description: 'Defconfig file to use for the build'
+      #   required: true
+      #   default: 'msm8937_pmos_defconfig'
+      # dtb:
+      #   description: 'dtb'
+      #   required: true
+      #   default: 'msm8917-xiaomi-rolex.dtb'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Set up environment
+      run: |
+        echo "BUILD_TIME=$(TZ=Asia/Shanghai date "+%Y%m%d%H%M")" >> $GITHUB_ENV
+        sudo apt-get update
+        sudo apt-get install -y gcc-aarch64-linux-gnu bc bison flex libssl-dev make
+        sudo apt install binfmt-support qemu-user-static gcc-10-aarch64-linux-gnu fakeroot simg2img img2simg mkbootimg bison flex gcc-aarch64-linux-gnu pkg-config libncurses-dev libssl-dev unzip git
+
+    - name: Download and extract Clang
+      run: |
+        mkdir clang
+        wget -q ${{ github.event.inputs.CLANG_URL }} -O clang.tar.gz
+        tar -C clang/ -zxf clang.tar.gz
+        export PATH=$GITHUB_WORKSPACE/clang/bin:$PATH
+
+    - name: Check clang version
+      run: |
+        export PATH=$GITHUB_WORKSPACE/clang/bin:$PATH
+        clang --version
+        ldd --version
+
+    - name: Clone the kernel source
+      run: |
+        mkdir linux-kernel
+        cd linux-kernel
+        git clone --branch ${{ github.event.inputs.branch }} ${{ github.event.inputs.repository }} kernel-src
+        cd kernel-src
+
+    - name: Build the kernel
+      run: |
+        cd linux-kernel/kernel-src
+        wget https://gitlab.com/barni2000/pmaports/-/raw/70ab164d88b87db26d2916b3e3a81823108b8e0a/device/testing/linux-postmarketos-qcom-msm89x7/config-postmarketos-qcom-msm89x7.aarch64 -o ./arch/arm64/configs/msm89x7defconfig
+        export PATH=$GITHUB_WORKSPACE/clang/bin:$PATH
+        export LLVM=1
+        export BUILD_INITRAMFS=1
+        make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang msm89x7defconfig
+        make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang -j$(nproc)
+        sudo apt-get install -y debhelper-compat libelf-dev
+        make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang deb-pkg -j$(nproc)
+        tar -czf qcom_dtb.tar.gz arch/arm64/boot/dts/qcom/*.dtb
+
+    - name: Upload kernel artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: kernel-artifacts-${{ env.BUILD_TIME }}
+        path: |
+          linux-kernel/kernel-src/arch/arm64/boot/Image.gz
+          linux-kernel/kernel-src/qcom_dtb.tar.gz
+          # linux-kernel/kernel-src/arch/arm64/boot/dts/qcom/${{ github.event.inputs.dtb }}
+          linux-kernel/linux-headers-*.deb
+          linux-kernel/linux-image-*.deb
+          linux-kernel/linux-libc-*.deb
+
+    
+    # - name: Build the kernel deb
+    #   run: |
+    #     sudo apt-get install -y debhelper-compat libelf-dev
+    #     make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang deb-pkg -j$(nproc)
+
+    # - name: Upload the kernel image
+    #   uses: actions/upload-artifact@v3
+    #   with:
+    #     name: Image.gz
+    #     path: linux-kernel/kernel-src/arch/arm64/boot/Image.gz
+
+    # - name: Upload the dtb
+    #   uses: actions/upload-artifact@v3
+    #   with:
+    #     name: ${{ github.event.inputs.dtb }}
+    #     path: linux-kernel/kernel-src/arch/arm64/boot/dts/qcom/${{ github.event.inputs.dtb }}
+
+    # - name: Upload the linux-headers-*.deb
+    #   uses: actions/upload-artifact@v3
+    #   with:
+    #     name: rolex-linux-headers-${{ env.BUILD_DATE }}.deb
+    #     path: linux-kernel/linux-headers-*.deb
+
+    # - name: Upload the linux-image-*.deb
+    #   uses: actions/upload-artifact@v3
+    #   with:
+    #     name: rolex-linux-image-${{ env.BUILD_DATE }}.deb
+    #     path: linux-kernel/linux-image-*.deb
+
+    # - name: Upload the linux-libc-*.deb
+    #   uses: actions/upload-artifact@v3
+    #   with:
+    #     name: rolex-linux-libc-${{ env.BUILD_DATE }}.deb
+    #     path: linux-kernel/linux-libc-*.deb
