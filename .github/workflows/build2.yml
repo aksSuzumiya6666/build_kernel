@@ -6,19 +6,19 @@ on:
       repository:
         description: 'GitHub repository URL to clone the kernel source from'
         required: true
-        default: 'https://github.com/barni2000/linux.git'
+        default: 'https://github.com/msm8953-mainline/linux.git'
       CLANG_URL:
         description: 'Clang URL'
         required: true
-        default: 'https://github.com/ZyCromerZ/Clang/releases/download/20.0.0git-20240823-release/Clang-20.0.0git-20240823.tar.gz'  
+        default: 'https://github.com/ZyCromerZ/Clang/releases/download/20.0.0git-20241129-release/Clang-20.0.0git-20241129.tar.gz'  
       branch:
         description: 'Branch of the repository to use'
         required: true
-        default: 'msm89x7-6.9-rc6-playground'
-      # defconfig:
-      #   description: 'Defconfig file to use for the build'
-      #   required: true
-      #   default: 'msm8937_pmos_defconfig'
+        default: '6.12/main'
+      defconfig:
+        description: 'Defconfig file to use for the build'
+        required: true
+        default: 'config-postmarketos-qcom-msm8953'
       # dtb:
       #   description: 'dtb'
       #   required: true
@@ -54,16 +54,18 @@ jobs:
         mkdir linux-kernel
         cd linux-kernel
         git clone --branch ${{ github.event.inputs.branch }} ${{ github.event.inputs.repository }} kernel-src
-        cd kernel-src
+        cd ../
+        pwd
 
     - name: Build the kernel
       run: |
         cd linux-kernel/kernel-src
-        wget https://gitlab.com/barni2000/pmaports/-/raw/70ab164d88b87db26d2916b3e3a81823108b8e0a/device/testing/linux-postmarketos-qcom-msm89x7/config-postmarketos-qcom-msm89x7.aarch64 -o ./arch/arm64/configs/msm89x7defconfig
+        pwd
+        wget https://github.com/aksSuzumiya6666/build_kernel/releases/download/8953-6.11/config-postmarketos-qcom-msm8953 -O arch/arm64/configs/config-postmarketos-qcom-msm8953
         export PATH=$GITHUB_WORKSPACE/clang/bin:$PATH
         export LLVM=1
         export BUILD_INITRAMFS=1
-        make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang msm89x7defconfig
+        make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang ${{ github.event.inputs.defconfig }}
         make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang -j$(nproc)
         sudo apt-get install -y debhelper-compat libelf-dev
         make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang deb-pkg -j$(nproc)
