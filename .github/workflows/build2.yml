@@ -6,7 +6,7 @@ on:
       repository:
         description: 'GitHub repository URL to clone the kernel source from'
         required: true
-        default: 'https://github.com/msm8953-mainline/linux.git'
+        default: 'https://github.com/aksSuzumiya6666/linux.git'
       CLANG_URL:
         description: 'Clang URL'
         required: true
@@ -61,7 +61,6 @@ jobs:
       run: |
         cd linux-kernel/kernel-src
         pwd
-        wget https://github.com/aksSuzumiya6666/build_kernel/releases/download/8953-6.11/config-postmarketos-qcom-msm8953 -O arch/arm64/configs/config-postmarketos-qcom-msm8953
         export PATH=$GITHUB_WORKSPACE/clang/bin:$PATH
         export LLVM=1
         export BUILD_INITRAMFS=1
