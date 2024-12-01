@@ -18,7 +18,7 @@ on:
       defconfig:
         description: 'Defconfig file to use for the build'
         required: true
-        default: 'config-postmarketos-qcom-msm8953'
+        default: 'defconfig'
       # dtb:
       #   description: 'dtb'
       #   required: true
@@ -64,9 +64,21 @@ jobs:
         export PATH=$GITHUB_WORKSPACE/clang/bin:$PATH
         export LLVM=1
         export BUILD_INITRAMFS=1
+        export ARCH=arm64
+        export CROSS_COMPILE=aarch64-linux-gnu-
+        export CC=aarch64-linux-gnu-gcc
+        export CXX=aarch64-linux-gnu-g++
+        export CPP=aarch64-linux-gnu-cpp
+        export AS=aarch64-linux-gnu-as
+        export LD=aarch64-linux-gnu-ld
+        export NM=aarch64-linux-gnu-nm
+        export OBJCOPY=aarch64-linux-gnu-objcopy
+        export OBJDUMP=aarch64-linux-gnu-objdump
+        export RANLIB=aarch64-linux-gnu-ranlib
+        export STRIP=aarch64-linux-gnu-strip
         make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang ${{ github.event.inputs.defconfig }}
         make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang -j$(nproc)
-        sudo apt-get install -y debhelper-compat libelf-dev
+        sudo apt-get install -y debhelper-compat libelf-dev libssl-dev
         make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang deb-pkg -j$(nproc)
         tar -czf qcom_dtb.tar.gz arch/arm64/boot/dts/qcom/*.dtb
 
