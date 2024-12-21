@@ -32,26 +32,6 @@ jobs:
           mkdir -p /home/runner/neutron-clang
           tar -I zstd -xf neutron-clang.tar.zst -C /home/runner/neutron-clang
 
-      - name: Set up environment variables
-        run: |
-          echo "KERNEL_DIR=${GITHUB_WORKSPACE}" >> $GITHUB_ENV
-          echo "ANYKERNEL3_DIR=${GITHUB_WORKSPACE}/AnyKernel3" >> $GITHUB_ENV
-          echo "CLANG_PATH=/home/runner/neutron-clang/neutron-clang-10032024/bin" >> $GITHUB_ENV
-          echo "PATH=${CLANG_PATH}:${PATH}" >> $GITHUB_ENV
-          echo "CROSS_COMPILE_ARM64=aarch64-linux-gnu-" >> $GITHUB_ENV
-          echo "CROSS_COMPILE_ARM32=arm-linux-gnueabi-" >> $GITHUB_ENV
-          echo "KERNEL_DEFCONFIG=alioth_Nethunter_defconfig" >> $GITHUB_ENV
-          echo "ARTIFACT=Image.gz-dtb" >> $GITHUB_ENV
-          echo "FINAL_KERNEL_ZIP=kernel.zip" >> $GITHUB_ENV
-
-      - name: Initialize Kernel Configuration
-        run: |
-          # Ask for user input during the build (you may want to adjust this in a real automation environment)
-          echo "MOD_ONLY=n" >> $GITHUB_ENV
-          echo "BUILD_MODULES=n" >> $GITHUB_ENV
-          echo "BUILD_DTBOIMG=0" >> $GITHUB_ENV
-          echo "FINAL_KERNEL_ZIP=custom-kernel.zip" >> $GITHUB_ENV
-
       - name: Clean Kernel Directory
         run: |
           cd $KERNEL_DIR
@@ -65,8 +45,21 @@ jobs:
 
       - name: Build Kernel
         run: |
+          echo "KERNEL_DIR=${GITHUB_WORKSPACE}" >> $GITHUB_ENV
+          echo "ANYKERNEL3_DIR=${GITHUB_WORKSPACE}/AnyKernel3" >> $GITHUB_ENV
+          echo "CLANG_PATH=/home/runner/neutron-clang/neutron-clang-10032024/bin" >> $GITHUB_ENV
+          echo "PATH=${CLANG_PATH}:${PATH}" >> $GITHUB_ENV
+          echo "CROSS_COMPILE_ARM64=aarch64-linux-gnu-" >> $GITHUB_ENV
+          echo "CROSS_COMPILE_ARM32=arm-linux-gnueabi-" >> $GITHUB_ENV
+          echo "KERNEL_DEFCONFIG=alioth_Nethunter_defconfig" >> $GITHUB_ENV
+          echo "ARTIFACT=Image.gz-dtb" >> $GITHUB_ENV
+          echo "FINAL_KERNEL_ZIP=kernel.zip" >> $GITHUB_ENV
+          echo "MOD_ONLY=n" >> $GITHUB_ENV
+          echo "BUILD_MODULES=n" >> $GITHUB_ENV
+          echo "BUILD_DTBOIMG=0" >> $GITHUB_ENV
+          echo "FINAL_KERNEL_ZIP=custom-kernel.zip" >> $GITHUB_ENV
           cd $KERNEL_DIR
-          make O=out CC=${CLANG_PATH}/clang CROSS_COMPILE=${CROSS_COMPILE_ARM64} CROSS_COMPILE_COMPAT=${CROSS_COMPILE_ARM32} AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip LLVM=1 LLVM_IAS=1 $KERNEL_DEFCONFIG
+          make O=out CC=${CLANG_PATH}/clang CROSS_COMPILE=${CROSS_COMPILE_ARM64} CROSS_COMPILE_COMPAT=${CROSS_COMPILE_ARM32} AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip LLVM=1 LLVM_IAS=1 arch/arm64/configs/alioth_Nethunter_defconfig
           make O=out CC=${CLANG_PATH}/clang CROSS_COMPILE=${CROSS_COMPILE_ARM64} CROSS_COMPILE_COMPAT=${CROSS_COMPILE_ARM32} AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip LLVM=1 LLVM_IAS=1 -j$(nproc)
 
       - name: Build Modules (if necessary)
