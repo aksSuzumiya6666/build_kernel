@@ -30,7 +30,8 @@ jobs:
           # Download and extract Neutron Clang
           curl -L https://github.com/Neutron-Toolchains/clang-build-catalogue/releases/download/10032024/neutron-clang-10032024.tar.zst -o neutron-clang.tar.zst
           mkdir -p /home/runner/neutron-clang
-          tar -I zstd -xf neutron-clang-10032024.tar.zst -C ./clang/
+          mkdir clang
+          tar -I zstd -xf neutron-clang-10032024.tar.zst -C clang/
 
       - name: Build Kernel
         run: |
