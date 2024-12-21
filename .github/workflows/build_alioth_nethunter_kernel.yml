@@ -45,6 +45,7 @@ jobs:
           export PATH=$GITHUB_WORKSPACE/clang/bin:$PATH
           git clone https://github.com/akm-04/InfiniR_Nethunter_alioth -b Nethunter_android-15 kernel
           cd kernel
+          curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -
           make O=out ARCH=arm64 CC=clang AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip LLVM=1 LLVM_IAS=1 alioth_Nethunter_defconfig
           make O=out ARCH=arm64 CC=clang AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip LLVM=1 LLVM_IAS=1 -j$(nproc)
 
