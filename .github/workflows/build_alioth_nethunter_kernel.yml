@@ -32,17 +32,6 @@ jobs:
           mkdir -p /home/runner/neutron-clang
           tar -I zstd -xf neutron-clang.tar.zst -C /home/runner/neutron-clang
 
-      - name: Clean Kernel Directory
-        run: |
-          cd $KERNEL_DIR
-          rm -rf out
-          mkdir -p out
-          rm -rf Mod
-          rm -rf $KERNEL_DIR/scripts/ufdt/libufdt
-          rm -f $ANYKERNEL3_DIR/*.zip
-          rm -rf $ANYKERNEL3_DIR/$ARTIFACT
-          rm -rf $ANYKERNEL3_DIR/dtbo.img
-
       - name: Build Kernel
         run: |
           echo "KERNEL_DIR=${GITHUB_WORKSPACE}" >> $GITHUB_ENV
