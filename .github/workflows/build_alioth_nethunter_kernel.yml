@@ -30,14 +30,13 @@ jobs:
           # Download and extract Neutron Clang
           curl -L https://github.com/Neutron-Toolchains/clang-build-catalogue/releases/download/10032024/neutron-clang-10032024.tar.zst -o neutron-clang.tar.zst
           mkdir -p /home/runner/neutron-clang
-          tar -I zstd -xf neutron-clang.tar.zst -C /home/runner/neutron-clang
+          tar -I zstd -xf neutron-clang-10032024.tar.zst -C ./clang/
 
       - name: Build Kernel
         run: |
           echo "KERNEL_DIR=${GITHUB_WORKSPACE}" >> $GITHUB_ENV
           echo "ANYKERNEL3_DIR=${GITHUB_WORKSPACE}/AnyKernel3" >> $GITHUB_ENV
           echo "CLANG_PATH=/home/runner/neutron-clang/neutron-clang-10032024/bin" >> $GITHUB_ENV
-          echo "PATH=${CLANG_PATH}:${PATH}" >> $GITHUB_ENV
           echo "CROSS_COMPILE_ARM64=aarch64-linux-gnu-" >> $GITHUB_ENV
           echo "CROSS_COMPILE_ARM32=arm-linux-gnueabi-" >> $GITHUB_ENV
           echo "KERNEL_DEFCONFIG=alioth_Nethunter_defconfig" >> $GITHUB_ENV
@@ -49,6 +48,7 @@ jobs:
           echo "FINAL_KERNEL_ZIP=custom-kernel.zip" >> $GITHUB_ENV
           git clone https://github.com/akm-04/InfiniR_Nethunter_alioth -b Nethunter_android-15 kernel
           cd kernel
+          export CLANG_PATH=~/clang/bin
           make O=out ARCH=arm64 CC=${CLANG_PATH}/clang CROSS_COMPILE=${CROSS_COMPILE_ARM64} CROSS_COMPILE_COMPAT=${CROSS_COMPILE_ARM32} AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip LLVM=1 LLVM_IAS=1 alioth_Nethunter_defconfig
           make O=out ARCH=arm64 CC=${CLANG_PATH}/clang CROSS_COMPILE=${CROSS_COMPILE_ARM64} CROSS_COMPILE_COMPAT=${CROSS_COMPILE_ARM32} AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip LLVM=1 LLVM_IAS=1 -j$(nproc)
 
