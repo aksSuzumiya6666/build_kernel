@@ -28,35 +28,30 @@ jobs:
             gcc-arm-linux-gnueabi gcc-arm-linux-gnueabi
           
           # Download and extract Neutron Clang
-          curl -L https://github.com/Neutron-Toolchains/clang-build-catalogue/releases/download/10032024/neutron-clang-10032024.tar.zst -o neutron-clang.tar.zst
-          mkdir -p /home/runner/neutron-clang
+          wget -q https://github.com/Neutron-Toolchains/clang-build-catalogue/releases/download/10032024/neutron-clang-10032024.tar.zst -O neutron-clang.tar.zst
           mkdir clang
           tar -I zstd -xf neutron-clang-10032024.tar.zst -C clang/
+          export PATH=$GITHUB_WORKSPACE/clang/bin:$PATH
+          clang --version
 
       - name: Build Kernel
         run: |
-          echo "KERNEL_DIR=${GITHUB_WORKSPACE}" >> $GITHUB_ENV
-          echo "ANYKERNEL3_DIR=${GITHUB_WORKSPACE}/AnyKernel3" >> $GITHUB_ENV
-          echo "CLANG_PATH=/home/runner/neutron-clang/neutron-clang-10032024/bin" >> $GITHUB_ENV
-          echo "CROSS_COMPILE_ARM64=aarch64-linux-gnu-" >> $GITHUB_ENV
-          echo "CROSS_COMPILE_ARM32=arm-linux-gnueabi-" >> $GITHUB_ENV
-          echo "KERNEL_DEFCONFIG=alioth_Nethunter_defconfig" >> $GITHUB_ENV
-          echo "ARTIFACT=Image.gz-dtb" >> $GITHUB_ENV
-          echo "FINAL_KERNEL_ZIP=kernel.zip" >> $GITHUB_ENV
-          echo "MOD_ONLY=n" >> $GITHUB_ENV
-          echo "BUILD_MODULES=n" >> $GITHUB_ENV
-          echo "BUILD_DTBOIMG=0" >> $GITHUB_ENV
-          echo "FINAL_KERNEL_ZIP=custom-kernel.zip" >> $GITHUB_ENV
+          export KERNEL_DIR=${GITHUB_WORKSPACE}/kernel
+          export ANYKERNEL3_DIR=${GITHUB_WORKSPACE}/kernel/AnyKernel3
+          export ARTIFACT=Image.gz-dtb
+          export FINAL_KERNEL_ZIP=kernel.zip
+          export CROSS_COMPILE_ARM64=aarch64-linux-gnu-
+          export CROSS_COMPILE_ARM32=arm-linux-gnueabi-
           git clone https://github.com/akm-04/InfiniR_Nethunter_alioth -b Nethunter_android-15 kernel
           cd kernel
-          export CLANG_PATH=~/clang/bin
+          export PATH=$GITHUB_WORKSPACE/clang/bin:$PATH
           make O=out ARCH=arm64 CC=${CLANG_PATH}/clang CROSS_COMPILE=${CROSS_COMPILE_ARM64} CROSS_COMPILE_COMPAT=${CROSS_COMPILE_ARM32} AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip LLVM=1 LLVM_IAS=1 alioth_Nethunter_defconfig
           make O=out ARCH=arm64 CC=${CLANG_PATH}/clang CROSS_COMPILE=${CROSS_COMPILE_ARM64} CROSS_COMPILE_COMPAT=${CROSS_COMPILE_ARM32} AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip LLVM=1 LLVM_IAS=1 -j$(nproc)
 
       - name: Build Modules (if necessary)
         if: ${{ env.BUILD_MODULES == 'y' }}
         run: |
-          cd $KERNEL_DIR
+          cd $GITHUB_WORKSPACE/kernel
           make O=out CC=${CLANG_PATH}/clang CROSS_COMPILE=${CROSS_COMPILE_ARM64} CROSS_COMPILE_COMPAT=${CROSS_COMPILE_ARM32} AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip LLVM=1 LLVM_IAS=1 modules_prepare
           make O=out CC=${CLANG_PATH}/clang CROSS_COMPILE=${CROSS_COMPILE_ARM64} CROSS_COMPILE_COMPAT=${CROSS_COMPILE_ARM32} AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip LLVM=1 LLVM_IAS=1 modules INSTALL_MOD_PATH="$KERNEL_DIR"/out/modules
 
