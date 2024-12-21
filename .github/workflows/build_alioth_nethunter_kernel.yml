@@ -1,0 +1,96 @@
+name: Build Nethunter Kernel
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up environment
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            llvm lld lldb clang gcc binutils flex bison \
+            build-essential git gcc g++ \
+            gcc-aarch64-linux-gnu gcc-arm-linux-gnueabihf \
+            gcc-arm-linux-gnueabi gcc-arm-linux-gnueabi
+          
+          # Download and extract Neutron Clang
+          curl -L https://github.com/Neutron-Toolchains/clang-build-catalogue/releases/download/10032024/neutron-clang-10032024.tar.zst -o neutron-clang.tar.zst
+          mkdir -p /home/runner/neutron-clang
+          tar -I zstd -xf neutron-clang.tar.zst -C /home/runner/neutron-clang
+
+      - name: Set up environment variables
+        run: |
+          echo "KERNEL_DIR=${GITHUB_WORKSPACE}" >> $GITHUB_ENV
+          echo "ANYKERNEL3_DIR=${GITHUB_WORKSPACE}/AnyKernel3" >> $GITHUB_ENV
+          echo "CLANG_PATH=/home/runner/neutron-clang/neutron-clang-10032024/bin" >> $GITHUB_ENV
+          echo "PATH=${CLANG_PATH}:${PATH}" >> $GITHUB_ENV
+          echo "CROSS_COMPILE_ARM64=aarch64-linux-gnu-" >> $GITHUB_ENV
+          echo "CROSS_COMPILE_ARM32=arm-linux-gnueabi-" >> $GITHUB_ENV
+          echo "KERNEL_DEFCONFIG=alioth_Nethunter_defconfig" >> $GITHUB_ENV
+          echo "ARTIFACT=Image.gz-dtb" >> $GITHUB_ENV
+          echo "FINAL_KERNEL_ZIP=kernel.zip" >> $GITHUB_ENV
+
+      - name: Initialize Kernel Configuration
+        run: |
+          # Ask for user input during the build (you may want to adjust this in a real automation environment)
+          echo "MOD_ONLY=n" >> $GITHUB_ENV
+          echo "BUILD_MODULES=n" >> $GITHUB_ENV
+          echo "BUILD_DTBOIMG=0" >> $GITHUB_ENV
+          echo "FINAL_KERNEL_ZIP=custom-kernel.zip" >> $GITHUB_ENV
+
+      - name: Clean Kernel Directory
+        run: |
+          cd $KERNEL_DIR
+          rm -rf out
+          mkdir -p out
+          rm -rf Mod
+          rm -rf $KERNEL_DIR/scripts/ufdt/libufdt
+          rm -f $ANYKERNEL3_DIR/*.zip
+          rm -rf $ANYKERNEL3_DIR/$ARTIFACT
+          rm -rf $ANYKERNEL3_DIR/dtbo.img
+
+      - name: Build Kernel
+        run: |
+          cd $KERNEL_DIR
+          make O=out CC=${CLANG_PATH}/clang CROSS_COMPILE=${CROSS_COMPILE_ARM64} CROSS_COMPILE_COMPAT=${CROSS_COMPILE_ARM32} AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip LLVM=1 LLVM_IAS=1 $KERNEL_DEFCONFIG
+          make O=out CC=${CLANG_PATH}/clang CROSS_COMPILE=${CROSS_COMPILE_ARM64} CROSS_COMPILE_COMPAT=${CROSS_COMPILE_ARM32} AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip LLVM=1 LLVM_IAS=1 -j$(nproc)
+
+      - name: Build Modules (if necessary)
+        if: ${{ env.BUILD_MODULES == 'y' }}
+        run: |
+          cd $KERNEL_DIR
+          make O=out CC=${CLANG_PATH}/clang CROSS_COMPILE=${CROSS_COMPILE_ARM64} CROSS_COMPILE_COMPAT=${CROSS_COMPILE_ARM32} AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip LLVM=1 LLVM_IAS=1 modules_prepare
+          make O=out CC=${CLANG_PATH}/clang CROSS_COMPILE=${CROSS_COMPILE_ARM64} CROSS_COMPILE_COMPAT=${CROSS_COMPILE_ARM32} AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip LLVM=1 LLVM_IAS=1 modules INSTALL_MOD_PATH="$KERNEL_DIR"/out/modules
+
+      - name: Create Flashable ZIP
+        run: |
+          cd $ANYKERNEL3_DIR
+          cp $KERNEL_DIR/out/arch/arm64/boot/$ARTIFACT $ANYKERNEL3_DIR/
+          if [ "$BUILD_DTBOIMG" = "1" ]; then
+            cp $KERNEL_DIR/out/arch/arm64/boot/dtbo.img $ANYKERNEL3_DIR/dtbo.img
+          fi
+          zip -r9 $FINAL_KERNEL_ZIP * -x README
+
+      - name: Upload Kernel ZIP Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: kernel-zip
+          path: $ANYKERNEL3_DIR/$FINAL_KERNEL_ZIP
+
+      - name: Upload Module ZIP (if built)
+        if: ${{ env.BUILD_MODULES == 'y' }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: module-zip
+          path: $KERNEL_DIR/Mod/${MOD_NAME}
