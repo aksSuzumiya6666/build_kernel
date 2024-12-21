@@ -47,7 +47,7 @@ jobs:
           echo "BUILD_MODULES=n" >> $GITHUB_ENV
           echo "BUILD_DTBOIMG=0" >> $GITHUB_ENV
           echo "FINAL_KERNEL_ZIP=custom-kernel.zip" >> $GITHUB_ENV
-          cd $KERNEL_DIR
+          git clone https://github.com/akm-04/InfiniR_Nethunter_alioth -b Nethunter_android-15 kernel
           make O=out ARCH=arm64 CC=${CLANG_PATH}/clang CROSS_COMPILE=${CROSS_COMPILE_ARM64} CROSS_COMPILE_COMPAT=${CROSS_COMPILE_ARM32} AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip LLVM=1 LLVM_IAS=1 alioth_Nethunter_defconfig
           make O=out ARCH=arm64 CC=${CLANG_PATH}/clang CROSS_COMPILE=${CROSS_COMPILE_ARM64} CROSS_COMPILE_COMPAT=${CROSS_COMPILE_ARM32} AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip LLVM=1 LLVM_IAS=1 -j$(nproc)
 
