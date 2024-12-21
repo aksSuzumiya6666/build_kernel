@@ -30,7 +30,7 @@ jobs:
           # Download and extract Neutron Clang
           wget -q https://github.com/Neutron-Toolchains/clang-build-catalogue/releases/download/10032024/neutron-clang-10032024.tar.zst -O neutron-clang.tar.zst
           mkdir clang
-          tar -I zstd -xf neutron-clang-10032024.tar.zst -C clang/
+          tar -I zstd -xf neutron-clang.tar.zst -C clang/
           export PATH=$GITHUB_WORKSPACE/clang/bin:$PATH
           clang --version
 
