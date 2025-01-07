@@ -26,7 +26,6 @@ jobs:
           git clone https://github.com/msm8916-mainline/lk2nd.git
           cd lk2nd
           sudo apt-get install gcc-arm-none-eabi device-tree-compiler libfdt-dev tar python3-pyasn1-modules python3-pycryptodome
-
           
       # Step 1.2: Find and loop through mk files and compile
       - name: Compile lk2nd for each version
@@ -44,7 +43,7 @@ jobs:
               version="${BASH_REMATCH[1]}"
               echo "Found mk file: $mk_file"
               echo "Version: $version"
-
+              
               # Build the corresponding lk2nd with the extracted version
               cd ../..
               make TOOLCHAIN_PREFIX=arm-none-eabi- lk2nd-msm$version
