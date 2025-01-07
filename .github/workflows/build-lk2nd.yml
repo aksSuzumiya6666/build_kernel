@@ -26,6 +26,7 @@ jobs:
           git clone https://github.com/msm8916-mainline/lk2nd.git
           cd lk2nd
           sudo apt-get install gcc-arm-none-eabi device-tree-compiler libfdt-dev tar python3-pyasn1-modules python3-pycryptodome
+
           
       # Step 1.2: Find and loop through mk files and compile
       - name: Compile lk2nd for each version
@@ -39,19 +40,20 @@ jobs:
           fi
 
           for mk_file in $mk_files; do
-            if [[ "$mk_file" =~ lk2nd-(.*)\.mk ]]; then
+            # Correct the regex: Only extract the version after 'lk2nd-' and before '.mk'
+            if [[ "$mk_file" =~ lk2nd-(msm[0-9]+|apq[0-9]+)\.mk ]]; then
               version="${BASH_REMATCH[1]}"
               echo "Found mk file: $mk_file"
               echo "Version: $version"
               
               # Build the corresponding lk2nd with the extracted version
               cd ../..
-              make TOOLCHAIN_PREFIX=arm-none-eabi- lk2nd-msm$version
-
+              make TOOLCHAIN_PREFIX=arm-none-eabi- "lk2nd-$version"
+  
               # Rename the output image file
-              build_folder="build-lk2nd-msm$version"
+              build_folder="build-lk2nd-$version"
               img_file="$build_folder/lk2nd.img"
-              renamed_img="lk2nd-msm$version.img"
+              renamed_img="lk2nd-$version.img"
 
               if [ -f "$img_file" ]; then
                 mv "$img_file" "$renamed_img"
@@ -90,7 +92,7 @@ jobs:
             -d '{
                   "tag_name": "v'$version'",
                   "name": "Release '$version'",
-                  "body": "Release of lk2nd-msm'$version'.img",
+                  "body": "Release of lk2nd-'$version'.img",
                   "draft": false,
                   "prerelease": false
                 }' \
