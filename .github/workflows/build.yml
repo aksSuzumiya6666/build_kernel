@@ -34,7 +34,7 @@ jobs:
         echo "BUILD_TIME=$(TZ=Asia/Shanghai date "+%Y%m%d%H%M")" >> $GITHUB_ENV
         sudo apt-get update
         sudo apt-get install -y gcc-aarch64-linux-gnu bc bison flex libssl-dev make
-        sudo apt install binfmt-support qemu-user-static gcc-10-aarch64-linux-gnu fakeroot simg2img img2simg mkbootimg bison flex gcc-aarch64-linux-gnu pkg-config libncurses-dev libssl-dev unzip git
+        sudo apt install binfmt-support qemu-user-static gcc-10-aarch64-linux-gnu fakeroot  mkbootimg bison flex gcc-aarch64-linux-gnu pkg-config libncurses-dev libssl-dev unzip git
 
     - name: Download and extract Clang
       run: |
