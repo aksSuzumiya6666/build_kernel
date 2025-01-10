@@ -6,7 +6,7 @@ on:
       repository:
         description: 'GitHub repository URL to clone the kernel source from'
         required: true
-        default: 'https://github.com/xingqianzhi/msm89x7-mainline.git'
+        default: 'https://github.com/aksSuzumiya6666/linux.git'
       CLANG_URL:
         description: 'Clang URL'
         required: true
@@ -14,11 +14,11 @@ on:
       branch:
         description: 'Branch of the repository to use'
         required: true
-        default: 'msm89x7-6.9-rc6-playground'
+        default: 'msm89x7/6.12.5'
       defconfig:
         description: 'Defconfig file to use for the build'
         required: true
-        default: 'msm89x7defconfig'
+        default: 'config-postmarketos-qcom-msm89x7'
       # dtb:
       #   description: 'dtb'
       #   required: true
