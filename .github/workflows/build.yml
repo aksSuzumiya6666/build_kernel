@@ -18,11 +18,7 @@ on:
       defconfig:
         description: 'Defconfig file to use for the build'
         required: true
-        default: 'config-postmarketos-qcom-msm89x7'
-      # dtb:
-      #   description: 'dtb'
-      #   required: true
-      #   default: 'msm8917-xiaomi-rolex.dtb'
+        default: 'defconfig'
 
 jobs:
   build:
@@ -33,8 +29,7 @@ jobs:
       run: |
         echo "BUILD_TIME=$(TZ=Asia/Shanghai date "+%Y%m%d%H%M")" >> $GITHUB_ENV
         sudo apt-get update
-        sudo apt-get install -y gcc-aarch64-linux-gnu bc bison flex libssl-dev make build-essential libssl-dev
-        sudo apt install binfmt-support qemu-user-static gcc-10-aarch64-linux-gnu fakeroot  mkbootimg bison flex gcc-aarch64-linux-gnu pkg-config libncurses-dev libssl-dev unzip git
+        sudo apt-get install -y gcc-aarch64-linux-gnu bc bison flex libssl-dev make build-essential libelf-dev debhelper-compat
 
     - name: Download and extract Clang
       run: |
@@ -47,28 +42,22 @@ jobs:
       run: |
         export PATH=$GITHUB_WORKSPACE/clang/bin:$PATH
         clang --version
-        ldd --version
 
     - name: Clone the kernel source
       run: |
         mkdir linux-kernel
         cd linux-kernel
         git clone --branch ${{ github.event.inputs.branch }} ${{ github.event.inputs.repository }} kernel-src
-        cd ../
-        pwd
 
     - name: Build the kernel
       run: |
         cd linux-kernel/kernel-src
-        pwd
         export PATH=$GITHUB_WORKSPACE/clang/bin:$PATH
-        export LLVM=1
-        export BUILD_INITRAMFS=1
         export CROSS_COMPILE=aarch64-linux-gnu-
         export CC=clang
+        export ARCH=arm64
         make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang ${{ github.event.inputs.defconfig }}
         make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang -j$(nproc)
-        sudo apt-get install -y debhelper-compat libelf-dev
         make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang deb-pkg -j$(nproc)
         tar -czf qcom_dtb.tar.gz arch/arm64/boot/dts/qcom/*.dtb
 
@@ -79,43 +68,6 @@ jobs:
         path: |
           linux-kernel/kernel-src/arch/arm64/boot/Image.gz
           linux-kernel/kernel-src/qcom_dtb.tar.gz
-          # linux-kernel/kernel-src/arch/arm64/boot/dts/qcom/${{ github.event.inputs.dtb }}
           linux-kernel/linux-headers-*.deb
           linux-kernel/linux-image-*.deb
           linux-kernel/linux-libc-*.deb
-
-    
-    # - name: Build the kernel deb
-    #   run: |
-    #     sudo apt-get install -y debhelper-compat libelf-dev
-    #     make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang deb-pkg -j$(nproc)
-
-    # - name: Upload the kernel image
-    #   uses: actions/upload-artifact@v3
-    #   with:
-    #     name: Image.gz
-    #     path: linux-kernel/kernel-src/arch/arm64/boot/Image.gz
-
-    # - name: Upload the dtb
-    #   uses: actions/upload-artifact@v3
-    #   with:
-    #     name: ${{ github.event.inputs.dtb }}
-    #     path: linux-kernel/kernel-src/arch/arm64/boot/dts/qcom/${{ github.event.inputs.dtb }}
-
-    # - name: Upload the linux-headers-*.deb
-    #   uses: actions/upload-artifact@v3
-    #   with:
-    #     name: rolex-linux-headers-${{ env.BUILD_DATE }}.deb
-    #     path: linux-kernel/linux-headers-*.deb
-
-    # - name: Upload the linux-image-*.deb
-    #   uses: actions/upload-artifact@v3
-    #   with:
-    #     name: rolex-linux-image-${{ env.BUILD_DATE }}.deb
-    #     path: linux-kernel/linux-image-*.deb
-
-    # - name: Upload the linux-libc-*.deb
-    #   uses: actions/upload-artifact@v3
-    #   with:
-    #     name: rolex-linux-libc-${{ env.BUILD_DATE }}.deb
-    #     path: linux-kernel/linux-libc-*.deb
